@@ -1,5 +1,3 @@
-// Copyright (c) 2024 The Foundry Visionmongers Ltd. All Rights Reserved.
-
 /// Color Gradient Remap kernel: Remaps colors based on three gradient values with dynamic clamping.
 /// Works only on RGBA images.
 kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
