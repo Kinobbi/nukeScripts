@@ -66,21 +66,17 @@ def create_color_ramp_widget(storage_knob):
             painter.setBrush(QtGui.QBrush(gradient))
             painter.drawRect(self.rect().adjusted(0, 0, 0, -50))
 
-            # Draw draggable sliders with selection highlight
             for index, (position, color) in enumerate(self.colors):
                 x_pos = int(position * self.width())
-
-                # Compute inverted color for selection highlight
                 inverted_color = QtGui.QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
 
                 if index == self.selected_index:
-                    painter.setPen(QtGui.QPen(inverted_color, 3))  # Highlight with inverted color
+                    painter.setPen(QtGui.QPen(inverted_color, 3))
                 else:
                     painter.setPen(QtGui.QPen(QtCore.Qt.white, 2))
 
                 painter.setBrush(QtGui.QBrush(color))
                 painter.drawEllipse(QtCore.QPoint(x_pos, self.height() // 3), 10, 10)
-
                 painter.setPen(QtGui.QPen(QtCore.Qt.black, 1))
                 painter.drawEllipse(QtCore.QPoint(x_pos, self.height() // 3), 10, 10)
 
@@ -149,7 +145,7 @@ def create_color_ramp_widget(storage_knob):
 
     return ColorRampWidget
 
-def color_ramp_knob():
+def color_ramp_knob(storage_knob_name):
     class ColorRampKnob(nuke.PyCustom_Knob):
         def __init__(self, name, label, storage_knob):
             super(ColorRampKnob, self).__init__(name, label)
@@ -161,22 +157,27 @@ def color_ramp_knob():
                 self.widget = create_color_ramp_widget(self.storage_knob)(self)
             return self.widget
 
-    return ColorRampKnob("color_ramp", "Color Ramp", storage_knob)
+    return ColorRampKnob("color_ramp", "Color Ramp", nuke.thisNode()[storage_knob_name])
 
 # Add color ramp knob with persistent storage to the selected node
 selected_node = nuke.selectedNode()
 if selected_node:
-    if "storage_knob" not in selected_node.knobs():
-        storage_knob = nuke.String_Knob("storage_knob", "Ramp Storage")
+
+    if "color_ramp" not in selected_node.knobs():
+        selected_node.addKnob(nuke.PyCustom_Knob("color_ramp", "Color Ramp", knob_script))
+        nuke.message(f"Color Ramp with sliders added to {selected_node.name()}.")
+        
+    unique_storage_knob_name = f"storage_knob_{selected_node.name()}"
+
+    if unique_storage_knob_name not in selected_node.knobs():
+        storage_knob = nuke.String_Knob(unique_storage_knob_name, "Ramp Storage")
         selected_node.addKnob(storage_knob)
         storage_knob.setFlag(nuke.INVISIBLE)
     else:
-        storage_knob = selected_node["storage_knob"]
+        storage_knob = selected_node[unique_storage_knob_name]
         storage_knob.setFlag(nuke.INVISIBLE)
 
-    knob_script = "color_ramp_knob()"
-    if "color_ramp" not in selected_node.knobs():
-        selected_node.addKnob(nuke.PyCustom_Knob("color_ramp", "Color Ramp", knob_script))
-        nuke.message("Color Ramp with sliders added to the selected node.")
+    knob_script = f"color_ramp_knob('{unique_storage_knob_name}')"
+
 else:
     nuke.message("Please select a node first.")
