@@ -162,12 +162,13 @@ def color_ramp_knob(storage_knob_name):
 # Add color ramp knob with persistent storage to the selected node
 selected_node = nuke.selectedNode()
 if selected_node:
-
+    
+    unique_storage_knob_name = f"storage_knob_{selected_node.name()}"
+    knob_script = f"color_ramp_knob('{unique_storage_knob_name}')"
+    
     if "color_ramp" not in selected_node.knobs():
         selected_node.addKnob(nuke.PyCustom_Knob("color_ramp", "Color Ramp", knob_script))
         nuke.message(f"Color Ramp with sliders added to {selected_node.name()}.")
-        
-    unique_storage_knob_name = f"storage_knob_{selected_node.name()}"
 
     if unique_storage_knob_name not in selected_node.knobs():
         storage_knob = nuke.String_Knob(unique_storage_knob_name, "Ramp Storage")
@@ -176,8 +177,6 @@ if selected_node:
     else:
         storage_knob = selected_node[unique_storage_knob_name]
         storage_knob.setFlag(nuke.INVISIBLE)
-
-    knob_script = f"color_ramp_knob('{unique_storage_knob_name}')"
 
 else:
     nuke.message("Please select a node first.")
