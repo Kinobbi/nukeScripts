@@ -15,6 +15,7 @@ kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
     float pos3;     // Position of color3 along the remap scale (0-1)
     float clampMin; // Minimum luminance value for remapping
     float clampMax; // Maximum luminance value for remapping
+    int interpolationMode; // 0 for Linear, 1 for Smoothstep
 
   local:
     float3 coefficients; // Luminance calculation coefficients
@@ -30,11 +31,17 @@ kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
     defineParam(pos3, "Position 3", 0.66f); // Default position for color3
     defineParam(clampMin, "Clamp Min", 0.0f); // Default min luminance
     defineParam(clampMax, "Clamp Max", 1.0f); // Default max luminance
+    defineParam(interpolationMode, "Interpolation Mode", 0); // Default to Linear
   }
 
   // Initialization: Set up luminance coefficients based on Rec. 709 standard
   void init() {
     coefficients = float3(0.2126f, 0.7152f, 0.0722f);
+  }
+
+  float smoothStep(float edge0, float edge1, float x) {
+    x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+    return x * x * (3.0f - 2.0f * x);
   }
 
   void process() {
@@ -51,19 +58,21 @@ kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
     // Normalize the clamped luminance to the range [0, 1]
     float normalizedLuminance = (luminance - clampMin) / (clampMax - clampMin);
 
-    // Interpolation logic based on user-defined positions
+    // Determine interpolation mode
+    float factor1 = (interpolationMode == 0) ? ((normalizedLuminance - pos1) / (pos2 - pos1)) : smoothStep(pos1, pos2, normalizedLuminance);
+    float factor2 = (interpolationMode == 0) ? ((normalizedLuminance - pos2) / (pos3 - pos2)) : smoothStep(pos2, pos3, normalizedLuminance);
+    float factor3 = (interpolationMode == 0) ? ((normalizedLuminance - pos3) / (1.0f - pos3)) : smoothStep(pos3, 1.0f, normalizedLuminance);
+
+    // Interpolation logic
     float4 remappedColor;
     if (normalizedLuminance <= pos1) {
         remappedColor = color1;
     } else if (normalizedLuminance <= pos2) {
-        float factor = (normalizedLuminance - pos1) / (pos2 - pos1);
-        remappedColor = (1.0f - factor) * color1 + factor * color2;
+        remappedColor = (1.0f - factor1) * color1 + factor1 * color2;
     } else if (normalizedLuminance <= pos3) {
-        float factor = (normalizedLuminance - pos2) / (pos3 - pos2);
-        remappedColor = (1.0f - factor) * color2 + factor * color3;
+        remappedColor = (1.0f - factor2) * color2 + factor2 * color3;
     } else {
-        float factor = (normalizedLuminance - pos3) / (1.0f - pos3);
-        remappedColor = (1.0f - factor) * color3 + factor * color4;
+        remappedColor = (1.0f - factor3) * color3 + factor3 * color4;
     }
 
     // Preserve the original alpha channel
