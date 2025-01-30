@@ -1,42 +1,32 @@
-/// Extended Color Gradient Remap kernel: Remaps colors based on four gradient values with custom positions.
-/// Works only on RGBA images.
 kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
 {
-  Image<eRead, eAccessPoint, eEdgeClamped> src; // The input image
-  Image<eWrite> dst; // The output image
+  Image<eRead, eAccessPoint, eEdgeClamped> src;
+  Image<eWrite> dst;
 
   param:
-    float4 color1;  // First gradient color (e.g., shadows)
-    float4 color2;  // Second gradient color (e.g., midtones 1)
-    float4 color3;  // Third gradient color (e.g., midtones 2)
-    float4 color4;  // Fourth gradient color (e.g., highlights)
-    float pos1;     // Position of color1 along the remap scale (0-1)
-    float pos2;     // Position of color2 along the remap scale (0-1)
-    float pos3;     // Position of color3 along the remap scale (0-1)
-    float clampMin; // Minimum luminance value for remapping
-    float clampMax; // Maximum luminance value for remapping
-    int interpolationMode; // 0 for Linear, 1 for Smoothstep
+    float4 color1, color2, color3, color4;
+    float pos1, pos2, pos3;
+    float clampMin, clampMax;
+    int interpolationMode;
 
   local:
-    float3 coefficients; // Luminance calculation coefficients
+    float3 coefficients;
 
-  // Define parameter labels and default values
   void define() {
-    defineParam(color1, "Gradient Color 1", float4(0.0f, 0.0f, 0.0f, 1.0f));  // Default black
-    defineParam(color2, "Gradient Color 2", float4(0.33f, 0.33f, 0.33f, 1.0f));  // Default dark gray
-    defineParam(color3, "Gradient Color 3", float4(0.66f, 0.66f, 0.66f, 1.0f));  // Default light gray
-    defineParam(color4, "Gradient Color 4", float4(1.0f, 1.0f, 1.0f, 1.0f));  // Default white
-    defineParam(pos1, "Position 1", 0.0f); // Default position for color1
-    defineParam(pos2, "Position 2", 0.33f); // Default position for color2
-    defineParam(pos3, "Position 3", 0.66f); // Default position for color3
-    defineParam(clampMin, "Clamp Min", 0.0f); // Default min luminance
-    defineParam(clampMax, "Clamp Max", 1.0f); // Default max luminance
-    defineParam(interpolationMode, "Interpolation Mode", 0); // Default to Linear
+    defineParam(color1, "Gradient Color 1", float4(0.0f, 0.0f, 0.0f, 1.0f));
+    defineParam(color2, "Gradient Color 2", float4(0.33f, 0.33f, 0.33f, 1.0f));
+    defineParam(color3, "Gradient Color 3", float4(0.66f, 0.66f, 0.66f, 1.0f));
+    defineParam(color4, "Gradient Color 4", float4(1.0f, 1.0f, 1.0f, 1.0f));
+    defineParam(pos1, "Position 1", 0.0f);
+    defineParam(pos2, "Position 2", 0.33f);
+    defineParam(pos3, "Position 3", 0.66f);
+    defineParam(clampMin, "Clamp Min", 0.0f);
+    defineParam(clampMax, "Clamp Max", 1.0f);
+    defineParam(interpolationMode, "Interpolation Mode", 0);
   }
 
-  // Initialization: Set up luminance coefficients based on Rec. 709 standard
   void init() {
-    coefficients = float3(0.2126f, 0.7152f, 0.0722f);
+    coefficients = float3(0.2126f, 0.7152f, 0.0722f); // Rec. 709 Luminance Coefficients
   }
 
   float smoothStep(float edge0, float edge1, float x) {
@@ -45,40 +35,61 @@ kernel GradientColorRemap : ImageComputationKernel<ePixelWise>
   }
 
   void process() {
-    // Read the input pixel
+    // Read input pixel
     SampleType(src) input = src();
     
-    // Extract RGB values from the input and calculate luminance
-    float3 srcPixel = float3(input.x, input.y, input.z);
-    float luminance = dot(srcPixel, coefficients);
+    // Extract RGB values
+    float3 srcPixel = float3(input[0], input[1], input[2]);
 
-    // Clamp luminance dynamically using user-defined parameters
-    luminance = clamp(luminance, clampMin, clampMax);
+    // Compute original luminance (brightness before remapping)
+    float originalLuminance = dot(srcPixel, coefficients);
+    
+    // Clamp luminance for valid range
+    float clampedLuminance = clamp(originalLuminance, clampMin, clampMax);
+    
+    // **Scale position knobs dynamically within the clamp range**
+    float adjustedPos1 = clampMin + pos1 * (clampMax - clampMin);
+    float adjustedPos2 = clampMin + pos2 * (clampMax - clampMin);
+    float adjustedPos3 = clampMin + pos3 * (clampMax - clampMin);
 
-    // Normalize the clamped luminance to the range [0, 1]
-    float normalizedLuminance = (luminance - clampMin) / (clampMax - clampMin);
+    // Normalize clamped luminance for interpolation
+    float normalizedLuminance = (clampedLuminance - clampMin) / (clampMax - clampMin);
 
-    // Determine interpolation mode
-    float factor1 = (interpolationMode == 0) ? ((normalizedLuminance - pos1) / (pos2 - pos1)) : smoothStep(pos1, pos2, normalizedLuminance);
-    float factor2 = (interpolationMode == 0) ? ((normalizedLuminance - pos2) / (pos3 - pos2)) : smoothStep(pos2, pos3, normalizedLuminance);
-    float factor3 = (interpolationMode == 0) ? ((normalizedLuminance - pos3) / (1.0f - pos3)) : smoothStep(pos3, 1.0f, normalizedLuminance);
+    // Compute interpolation factors
+    float factor1 = (interpolationMode == 0) ? ((clampedLuminance - adjustedPos1) / (adjustedPos2 - adjustedPos1)) : smoothStep(adjustedPos1, adjustedPos2, clampedLuminance);
+    float factor2 = (interpolationMode == 0) ? ((clampedLuminance - adjustedPos2) / (adjustedPos3 - adjustedPos2)) : smoothStep(adjustedPos2, adjustedPos3, clampedLuminance);
+    float factor3 = (interpolationMode == 0) ? ((clampedLuminance - adjustedPos3) / (clampMax - adjustedPos3)) : smoothStep(adjustedPos3, clampMax, clampedLuminance);
 
-    // Interpolation logic
+    // Perform gradient color interpolation
     float4 remappedColor;
-    if (normalizedLuminance <= pos1) {
+    if (clampedLuminance <= adjustedPos1) {
         remappedColor = color1;
-    } else if (normalizedLuminance <= pos2) {
+    } else if (clampedLuminance <= adjustedPos2) {
         remappedColor = (1.0f - factor1) * color1 + factor1 * color2;
-    } else if (normalizedLuminance <= pos3) {
+    } else if (clampedLuminance <= adjustedPos3) {
         remappedColor = (1.0f - factor2) * color2 + factor2 * color3;
     } else {
         remappedColor = (1.0f - factor3) * color3 + factor3 * color4;
     }
 
-    // Preserve the original alpha channel
-    remappedColor.w = input.w * remappedColor.w;
+    // Compute luminance of remapped color
+    float remappedLuminance = dot(float3(remappedColor[0], remappedColor[1], remappedColor[2]), coefficients);
 
-    // Write the result to the output image
+    // **Ensure the output retains the original brightness**  
+    float3 finalColor = remappedColor.xyz;
+
+    // Adjust the brightness to match the original input luminance
+    if (remappedLuminance > 0.0) {
+        finalColor = (finalColor / remappedLuminance) * originalLuminance;
+    } else {
+        finalColor = float3(0.0, 0.0, 0.0);
+    }
+
+    // Preserve original alpha channel
+    remappedColor.xyz = finalColor;
+    remappedColor.w = input[3];
+
+    // Write to output
     dst() = remappedColor;
   }
 };
