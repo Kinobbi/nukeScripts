@@ -1,0 +1,350 @@
+Group {
+ name lp2DPMatte
+ tile_color 0xff5f00ff
+ note_font "Segoe UI Black"
+ inputs 2
+ knobChanged "\n\nthis_node = nuke.thisNode()\nthis_knob = nuke.thisKnob()\n\nif this_node.knob('shape_colorized').value() == 1 and this_node.knob('is_baked').value() == 1:\n    this_node.knob('shape_colorized_color').setVisible(True)\n    this_node.knob('shape_color_mix').setVisible(True)\nelse:\n    this_node.knob('shape_colorized_color').setVisible(False)\n    this_node.knob('shape_color_mix').setVisible(False)\n\n"
+ tile_color 0xff6600ff
+ gl_color 0xff6600ff
+ addUserKnob {20 two_dimension_p_matte l 2DPMatte}
+ addUserKnob {26 "" l "Local GPU:" T ""}
+ addUserKnob {26 "" -STARTLINE T "NVIDIA GeForce GTX 980"}
+ addUserKnob {41 useGPUIfAvailable l "Use GPU if available" T BlinkScript_StaticCenterOfMass1.useGPUIfAvailable}
+ addUserKnob {26 GPU_separator l "" +STARTLINE T " "}
+ addUserKnob {26 bake_title l <b>Bake}
+ addUserKnob {22 bake l Bake T "import nuke\n\nknobs_to_hide_show = \['shape_title', 'shape_type', 'shape_position', 'shape_radius', 'shape_smoothness', 'shape_colorized', 'shape_colorized_color', 'shape_color_mix', 'shape_separator', 'export_title', 'export_ref_frame', 'export_current_frame', 'export_type', 'export_linked', 'export_create', 'export_separator', 'mask_mask', 'mask_maskChannelInput', 'mask_inject', 'mask_invert_mask', 'mask_mix',]\n\nthis_node = nuke.thisNode()\n# this_node = nuke.toNode('lpCoreFillerTracker_v1')\n\nref_frame = this_node\['export_ref_frame'].getValue()\n\nwith this_node:\n    curve_tool = nuke.toNode('CurveTool_StaticCenterOfMass1')\n    curve_tool\['go'].execute()\n\n    this_node\['is_baked'].setValue(1)\n    this_node\['is_baked'].setEnabled(False)\n\n    for knob in knobs_to_hide_show:\n         this_node\[knob].setVisible(True)   \n     \n    curve_tool_data = nuke.toNode('PositionData_StaticCenterOfMass1')\n    ref_frame_pos = curve_tool_data.knob('x_y_float').valueAt(ref_frame)\n    curve_tool_data.knob('ref_frame_center').setValue(ref_frame_pos)\n    this_node.knob('shape_position').setValue(ref_frame_pos)" +STARTLINE}
+ addUserKnob {22 reset_bake l "Reset Bake" -STARTLINE T "import nuke\n\nthis_node = nuke.thisNode()\n# this_node = nuke.toNode('lpCoreFillerTracker_v1')\n\nref_frame = this_node\['export_ref_frame'].getValue()\n\nwith this_node:\n    curve_tool = nuke.toNode('CurveTool_StaticCenterOfMass1')\n    curve_tool\['go'].execute()\n    \n    curve_tool_data = nuke.toNode('PositionData_StaticCenterOfMass1')\n    ref_frame_pos = curve_tool_data.knob('x_y_float').valueAt(ref_frame)\n    curve_tool_data.knob('ref_frame_center').setValue(ref_frame_pos)\n    this_node.knob('shape_position').setValue(ref_frame_pos)"}
+ addUserKnob {6 is_baked l "is baked" -STARTLINE}
+ addUserKnob {26 bake_separator l "" +STARTLINE T " "}
+ addUserKnob {26 shape_title l <b>Shape +HIDDEN}
+ addUserKnob {4 shape_type l shape +DISABLED +HIDDEN M {circle "cusped square" "rounded square" "linear ramp" "radial ramp" custom ""}}
+ addUserKnob {12 shape_position l position +HIDDEN}
+ shape_position {2066.5 1415.5}
+ addUserKnob {7 shape_radius l radius +HIDDEN R 0 100}
+ shape_radius 15
+ addUserKnob {7 shape_smoothness l smoothness +HIDDEN R 0 55}
+ shape_smoothness 5
+ addUserKnob {6 shape_colorized l "shape colorized" +HIDDEN +STARTLINE}
+ shape_colorized true
+ addUserKnob {19 shape_colorized_color l "shape color" +HIDDEN}
+ shape_colorized_color {1 0.2 0 1}
+ addUserKnob {6 shape_colorized_color_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 shape_colorized_color_panelDropped_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 shape_colorized_color_panelDropped_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 shape_colorized_color_panelDropped_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 shape_colorized_color_panelDropped_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 shape_colorized_color_panelDropped_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 color_rgba_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {7 shape_color_mix l "shape color mix" +HIDDEN}
+ shape_color_mix 1
+ addUserKnob {26 shape_separator l "" +STARTLINE +HIDDEN T " "}
+ addUserKnob {26 export_title l <b>Export +HIDDEN}
+ addUserKnob {3 export_ref_frame l ref_frame +HIDDEN}
+ export_ref_frame 1001
+ addUserKnob {22 export_current_frame l "set to current frame" -STARTLINE +HIDDEN T "this_node = nuke.thisNode()\ncurr_frame = nuke.frame()\nthis_node\['export_ref_frame'].setValue(curr_frame)\n\nref_frame = this_node\['export_ref_frame'].getValue()\n\nwith this_node:\n    curve_tool_data = nuke.toNode('PositionData_StaticCenterOfMass1')\n    ref_frame_pos = curve_tool_data.knob('x_y_float').valueAt(ref_frame)\n    curve_tool_data.knob('ref_frame_center').setValue(ref_frame_pos)\n    this_node.knob('shape_position').setValue(ref_frame_pos)"}
+ addUserKnob {4 export_type l " " +HIDDEN M {"Matchmove (Ref. frame)" "Stabilize (Ref. frame)" "" "" "" "" "" ""}}
+ addUserKnob {6 export_linked l linked -STARTLINE +HIDDEN +INVISIBLE}
+ export_linked true
+ addUserKnob {22 export_create l create -STARTLINE +HIDDEN T "import nuke\n\nthis_node = nuke.thisNode()\nref_frame = this_node\['export_ref_frame'].getValue()\n\nwith this_node:\n    curve_tool_data = nuke.toNode('PositionData_StaticCenterOfMass1')\n    ref_frame_pos = curve_tool_data.knob('x_y_float').valueAt(ref_frame)\n    curve_tool_data.knob('ref_frame_center').setValue(ref_frame_pos)\n    this_node.knob('shape_position').setValue(ref_frame_pos)\n\n\nwith nuke.root():\n\n\n# MATCHMOVE\n#######################################################################################\n    if this_node.knob('export_type').getValue() == 0:\n        matchmove_node = nuke.createNode('Transform')\n        matchmove_node.setName(str(this_node.name()) + '_Matchmove1')\n        \n        matchmove_node.knob('center').setExpression(str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.ref_frame_center')\n        matchmove_node.knob('translate').setExpression(str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.x_y_float - ' + str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.ref_frame_center')\n\n        matchmove_node.knob('label').setValue('ref_frame: ' + str(int(ref_frame)))\n    \n    \n# STABILIZE\n#######################################################################################\n    elif this_node.knob('export_type').getValue() == 1:\n        stabilize_node = nuke.createNode('Transform')\n        stabilize_node.setName(str(this_node.name()) + '_Stabilize1')\n        \n        stabilize_node.knob('center').setExpression(str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.x_y_float')\n        stabilize_node.knob('translate').setExpression('-(' + str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.x_y_float - ' + str(this_node.name()) + '.' + str(curve_tool_data.name()) + '.ref_frame_center)')\n    \n        stabilize_node.knob('label').setValue('ref_frame: ' + str(int(ref_frame)))"}
+ addUserKnob {26 export_separator l "" +STARTLINE +HIDDEN T " "}
+ addUserKnob {26 ""}
+ addUserKnob {26 mask_mask l mask +HIDDEN T ""}
+ addUserKnob {41 mask_maskChannelInput l "" -STARTLINE T MergeCopyCoreFillerTracker1.maskChannelInput}
+ addUserKnob {41 mask_inject l inject -STARTLINE T MergeCopyCoreFillerTracker1.inject}
+ addUserKnob {41 mask_invert_mask l invert -STARTLINE T MergeCopyCoreFillerTracker1.invert_mask}
+ addUserKnob {41 mask_fringe l fringe -STARTLINE T MergeCopyCoreFillerTracker1.fringe}
+ addUserKnob {41 mask_mix l mix T MergeCopyCoreFillerTracker1.mix}
+ addUserKnob {26 mask_separator l "" +STARTLINE T " "}
+ addUserKnob {26 copy_line l "" +STARTLINE}
+ addUserKnob {26 nodeName l "" +STARTLINE T " <b>lp2DPMatte v0.1</b>"}
+ addUserKnob {26 copyName l "" +STARTLINE T "David Lozano Pascual ©"}
+}
+ NoOp {
+  inputs 0
+  name PositionData_StaticCenterOfMass1
+  xpos 101
+  ypos 798
+  addUserKnob {20 PositionData}
+  addUserKnob {3 x_integer}
+  x_integer {{parent.CurveTool_StaticCenterOfMass1.intensitydata.r}}
+  addUserKnob {3 y_integer}
+  y_integer {{parent.CurveTool_StaticCenterOfMass1.intensitydata.g}}
+  addUserKnob {12 x_y_float}
+  x_y_float {{"int(x_integer) + .5"} {"int(y_integer) + .5"}}
+  addUserKnob {26 ""}
+  addUserKnob {12 ref_frame_center}
+  ref_frame_center {2066.5 1415.5}
+ }
+ Input {
+  inputs 0
+  name mask
+  xpos -688
+  ypos 73
+  number 1
+ }
+ Dot {
+  name Dot2
+  xpos -654
+  ypos 240
+ }
+ Input {
+  inputs 0
+  name src
+  xpos -900
+  ypos 72
+ }
+push 0
+ Merge2 {
+  inputs 2+1
+  operation copy
+  metainput All
+  rangeinput All
+  name MergeCopyCoreFillerTracker1
+  xpos -900
+  ypos 232
+ }
+ Crop {
+  box {{curve} {curve} {src.width} {src.height}}
+  name Crop1CoreFillerTracker1
+  xpos -900
+  ypos 315
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle1CoreFillerTracker1
+  label "\[value in]\nset rgba with values of alpha"
+  note_font "Arial Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold"
+  note_font_size 12
+  xpos -900
+  ypos 377
+ }
+ Dot {
+  name Dot17
+  xpos -866
+  ypos 481
+ }
+set N6fa12380 [stack 0]
+ Dot {
+  name Dot3
+  xpos -866
+  ypos 1762
+ }
+set N6fa12000 [stack 0]
+push $N6fa12380
+ Dot {
+  name Dot6
+  xpos -387
+  ypos 481
+ }
+set N6fa39c00 [stack 0]
+ Dot {
+  name Dot5
+  label BAKED
+  note_font "Verdana Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold"
+  note_font_size 55
+  xpos -387
+  ypos 511
+ }
+ Expression {
+  expr3 x==0&&y==0?1:0
+  name CoreFillerTrackerBakedExpression1
+  xpos -421
+  ypos 696
+ }
+ Transform {
+  translate {{parent.PositionData_StaticCenterOfMass1.x_y_float} {parent.PositionData_StaticCenterOfMass1.x_y_float}}
+  shutteroffset centred
+  name TransformMM1CoreFillerTracker1
+  xpos -421
+  ypos 797
+ }
+ Crop {
+  box {{curve} {curve} {src.width} {src.height}}
+  name CropBaked1CoreFillerTracker1
+  xpos -421
+  ypos 872
+ }
+ Expression {
+  expr0 a
+  expr1 a
+  expr2 a
+  expr3 "a > .1 ? 1:0"
+  name ExpressionCoreFillerTracker1
+  xpos -421
+  ypos 981
+ }
+ Matrix {
+  matrix {
+      {1 1 1}
+      {1 1 1}
+      {1 1 11}
+    }
+  name Matrix1CoreFillerTracker1
+  xpos -421
+  ypos 1023
+ }
+ Matrix {
+  matrix {
+      {1 1 1}
+      {1 1 1}
+      {1 1 11}
+    }
+  name Matrix2CoreFillerTracker1
+  xpos -421
+  ypos 1061
+ }
+ Erode {
+  channels alpha
+  size -20
+  name Erode1CoreFillerTracker1
+  xpos -421
+  ypos 1099
+ }
+ Erode {
+  channels alpha
+  size -20
+  name Erode2CoreFillerTracker1
+  xpos -421
+  ypos 1137
+ }
+ Erode {
+  channels alpha
+  size -20
+  name Erode3CoreFillerTracker1
+  xpos -421
+  ypos 1175
+ }
+ Erode {
+  channels alpha
+  size -20
+  name Erode4CoreFillerTracker1
+  xpos -421
+  ypos 1213
+ }
+ Erode {
+  channels alpha
+  size -60
+  name Erode5CoreFillerTracker1
+  xpos -421
+  ypos 1251
+ }
+ Erode {
+  channels alpha
+  size {{-(shape_radius-55)+25}}
+  name RadiusControllerCoreFillerTracker1
+  xpos -421
+  ypos 1289
+ }
+ Blur {
+  channels alpha
+  size {{shape_smoothness}}
+  name SoftenControllerCoreFillerTracker1
+  xpos -421
+  ypos 1327
+ }
+ Shuffle {
+  red alpha
+  green alpha
+  blue alpha
+  name Shuffle2CoreFillerTracker1
+  label "\[value in]"
+  xpos -421
+  ypos 1382
+ }
+ Unpremult {
+  name CoreFillerTrackerUnpremult1
+  xpos -421
+  ypos 1487
+ }
+ Grade {
+  white {{shape_colorized_color} {shape_colorized_color} {shape_colorized_color} {shape_colorized_color}}
+  black_clamp false
+  mix {{shape_color_mix}}
+  name CoreFillerTrackerGrade1
+  selected true
+  xpos -421
+  ypos 1522
+  disable {{!shape_colorized}}
+ }
+ Premult {
+  name CoreFillerTrackerPremult1
+  xpos -421
+  ypos 1562
+ }
+ Transform {
+  translate {{shape_position-center} {shape_position-center}}
+  center {{PositionData_StaticCenterOfMass1.ref_frame_center} {PositionData_StaticCenterOfMass1.ref_frame_center}}
+  shutteroffset centred
+  name Transform1CoreFillerTracker1
+  xpos -421
+  ypos 1620
+ }
+ Merge2 {
+  inputs 2
+  operation under
+  Achannels {rgba.red rgba.green rgba.blue -rgba.alpha}
+  name Merge1
+  xpos -421
+  ypos 1758
+ }
+push $N6fa12000
+ Dot {
+  name Dot4
+  xpos -866
+  ypos 1931
+ }
+ Switch {
+  inputs 2
+  which {{is_baked}}
+  name SwitchBaked1
+  label "\[value which]"
+  xpos -421
+  ypos 1921
+ }
+ Crop {
+  box {{curve} {curve} {src.width} {src.height}}
+  name Crop2CoreFillerTracker1
+  xpos -421
+  ypos 2024
+ }
+ Output {
+  name Output1
+  xpos -421
+  ypos 2105
+ }
+push $N6fa39c00
+ Dot {
+  name Dot18
+  xpos 134
+  ypos 481
+ }
+ Dot {
+  name Dot1
+  label "BAKED\nOPERATIONS"
+  note_font "Verdana Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold Bold"
+  note_font_size 55
+  xpos 134
+  ypos 540
+ }
+ BlinkScript {
+  recompileCount 42
+  ProgramGroup 1
+  KernelDescription "2 \"StaticCenterOfMass\" iterate pixelWise 3345cf2d25616de24c002f8a450f1281233897f855ad556c79cbf0cb091ec78c 2 \"src\" Read Random \"dst\" Write Random 0 0 3 \"sum\" Float 2 1 AAAAAAAAAAA= \"center\" Float 2 1 AAAAAAAAAAA= \"c\" Int 2 1 AAAAAAAAAAA="
+  kernelSource "kernel StaticCenterOfMass : ImageComputationKernel<ePixelWise> \{\n  Image<eRead, eAccessRandom, eEdgeClamped> src;\n  Image<eWrite, eAccessRandom> dst;\n  \n   local:\n    float2 sum;\n    float2 center;\n    int2 c;\n\n  void init() \{\n    sum.x = 0;\n    sum.y = 0;\n    c.x = 0;\n  \}\n\n  void process(int2 pos) \{\n      if (pos.x == 0 && pos.y == 0)\{\n          for (int j = src.bounds.y1; j < src.bounds.y2; j++) \{\n               for (int i = src.bounds.x1; i < src.bounds.x2; i++) \{\n\t         if (src(i,j,3) > 0.0) \{\n\t             sum.x += i;\n\t             sum.y += j;\n\t             c.x++;\n\t         \}\n               \}\n          \}\n     \n          if (c.x != 0)\{\n            center.x = sum.x / c.x;\n            center.y = sum.y / c.x;\n          \}\n          \n          dst(0,0,0) = center.x;\n\tdst(0,0,1) = center.y;\n      \}\n  \}\n\};"
+  rebuild ""
+  rebuild_finalise ""
+  name BlinkScript_StaticCenterOfMass1
+  xpos 100
+  ypos 632
+ }
+ CurveTool {
+  ROI {0 0 1 1}
+  autocropdata {512 389 1536 1167}
+  intensitydata {{curve}}
+  name CurveTool_StaticCenterOfMass1
+  xpos 100
+  ypos 712
+ }
+end_group
