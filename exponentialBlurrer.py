@@ -27,11 +27,11 @@ def refresh_blur_nodes(blur_group):
         blur_node = nuke.createNode("Blur", inpanel=False)  # Prevents properties panel from opening
         blur_node.setName(f"Blur{i}")
 
-        # First Blur references the Group Size Control
+        # First Blur references the Group Size Control and Multiplier
         if i == 1:
             blur_node.knob("size").setExpression("parent.size_control")
         else:
-            blur_node.knob("size").setExpression(f"parent.Blur{i-1}.size*2")
+            blur_node.knob("size").setExpression(f"parent.Blur{i-1}.size * parent.blur_multiplier")
 
         # Connect all Blur nodes to Input1
         blur_node.setInput(0, input_node)
@@ -70,6 +70,12 @@ def create_blur_chain_group():
     size_knob = nuke.Double_Knob("size_control", "First Blur Size")
     size_knob.setValue(10)  # Default size
     blur_group.addKnob(size_knob)
+
+    # Create a Multiplier Knob (replacing *2 in expressions)
+    multiplier_knob = nuke.Double_Knob("blur_multiplier", "Blur Multiplier")
+    multiplier_knob.setValue(2.0)  # Default multiplier (same as the original *2)
+    multiplier_knob.setRange(0.1, 5.0)  # Allow flexible scaling
+    blur_group.addKnob(multiplier_knob)
 
     # Create an Integer Knob to Control the Number of Blur Nodes (Set to Read-Only)
     num_blurs_knob = nuke.Int_Knob("num_blurs", "Number of Blurs")
