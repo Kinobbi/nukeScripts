@@ -1,14 +1,42 @@
 set cut_paste_input [stack 0]
 version 16.0 v8
 push $cut_paste_input
+Camera3 {
+ translate {{curve x1 0 x20 5.539999962 x50 13.5} {curve x1 0 x20 -0.8299999833 x50 3.940000057} {curve x1 0 x20 0 x50 0}}
+ name Camera1
+ selected true
+ xpos -157
+ ypos -241
+}
+set N5e0b0300 [stack 0]
+Axis3 {
+ translate {0 0 {parent.Group1.centreOffset.y}}
+ name Axis1
+ selected true
+ xpos -58
+ ypos -364
+}
+push $N5e0b0300
+Camera3 {
+ inputs 2
+ translate {{"(sin(Group1.spin)*Group1.radius) + Group1.centreOffset.x"} 0 {"(cos(Group1.spin)*Group1.radius) + Group1.centreOffset.y"}}
+ name Camera2
+ selected true
+ xpos 13
+ ypos -220
+ addUserKnob {20 User}
+}
 Group {
+ inputs 0
  name Group1
  selected true
  xpos 98
  ypos -414
  addUserKnob {20 User}
+ addUserKnob {7 cameraDistance l "camera distance"}
+ cameraDistance 10
  addUserKnob {7 spin}
- spin {0.5}
+ spin {{"(asin(Group1.cameraDistance / Group1.radius))"}}
  addUserKnob {7 radius}
  radius 60
  addUserKnob {12 centreOffset l "centre offset"}
@@ -25,29 +53,3 @@ Group {
   ypos 300
  }
 end_group
-push $cut_paste_input
-Camera3 {
- translate {{curve x1 0 x20 5.539999962 x50 13.5} {curve x1 0 x20 -0.8299999833 x50 3.940000057} {curve x1 0 x20 0 x50 0}}
- name Camera1
- selected true
- xpos -157
- ypos -241
-}
-set N69261200 [stack 0]
-Axis3 {
- translate {0 0 {parent.Group1.centreOffset.y}}
- name Axis1
- selected true
- xpos -58
- ypos -364
-}
-push $N69261200
-Camera3 {
- inputs 2
- translate {{"(sin(Group1.spin)*Group1.radius) + Group1.centreOffset.x"} 0 {"(cos(Group1.spin)*Group1.radius) + Group1.centreOffset.y"}}
- name Camera2
- selected true
- xpos 13
- ypos -220
- addUserKnob {20 User}
-}
